@@ -1,5 +1,11 @@
 project: supply-chain-control-tower
 artifact_type: sanitized-semantic-model-contract
+schema_version: "1.1"
+observed_as_of: "2026-08-01"
+evidence_class: observed_read_only_metadata
+environment_scope: cross_environment_metadata_assessment
+count_scope: assessed_model_snapshot
+evidence_register: docs/evidence-register.md
 storage_mode: direct-lake
 compatibility_level_observed: 1606
 counts:
@@ -36,3 +42,27 @@ security:
   contains_real_data: false
   contains_credentials: false
   contains_production_formulas: false
+contract_scope:
+  exact_physical_keys_published: false
+  grain_key_scd_policy: proposed_sanitized_contract
+  deployment_binding_required: true
+release_guardrails:
+  - gold_schema_contract
+  - dimension_key_uniqueness
+  - orphan_key_check
+  - golden_dax_queries
+  - report_binding_assertion
+  - rls_negative_tests
+evidence_boundary:
+  observed:
+    - aggregate_object_counts
+    - storage_modes
+    - relationship_count
+  proposed:
+    - slo_targets
+    - ci_cd_controls
+    - scale_evolution
+  not_claimed:
+    - individual_authorship
+    - team_size
+    - business_impact

@@ -5,44 +5,72 @@
   "isPrimary": true,
   "steps": [
     {
+      "title": "How to use this tour",
+      "description": "In about five minutes, follow the semantic product from business boundary through grain, metric contracts, architecture decisions, operations, evidence, and interview defense. Separate observed evidence from proposed controls throughout."
+    },
+    {
       "title": "Start with the business boundary",
       "description": "This README frames the semantic model as a reusable contract for two analytical products. The key mechanism is shared governance without forcing forecast and inventory facts into one grain. That matters because a hiring manager can evaluate both business framing and model discipline; the gotcha is treating a shared model as permission to create fact-to-fact coupling.",
       "file": "README.md",
       "pattern": "^# Supply Chain Control Tower Semantic Model$"
     },
     {
-      "title": "Read the physical-to-semantic handoff",
-      "description": "This section shows Gold tables entering the model through Direct Lake. The design keeps serving logic in Gold and business calculation logic in the semantic layer. That separation makes lineage explainable; the gotcha is moving unstable report-specific transformations into shared dimensions.",
-      "file": "README.md",
-      "pattern": "^## Architecture$"
-    },
-    {
-      "title": "Inspect the two domain grains",
-      "description": "Forecast and inventory use different fact grains and answer different questions. Separate bounded contexts prevent accidental aggregation across horizon, fiscal period, snapshot week, and future week. The gotcha is assuming common dimensions imply common fact granularity.",
+      "title": "Establish the two domain grains",
+      "description": "Forecast and inventory answer different questions at different temporal grains. Separate bounded contexts prevent accidental aggregation across forecast horizon, fiscal period, snapshot week, and future week.",
       "file": "docs/model-design.md",
       "pattern": "^## Domain boundaries$"
     },
     {
-      "title": "Verify relationship rules",
-      "description": "The relationship contract enforces dimension-to-fact filtering and avoids direct fact coupling. This supports predictable DAX and makes ambiguity visible during review. The gotcha is solving a report interaction problem by enabling bidirectional filtering globally.",
+      "title": "Make the grain contract testable",
+      "description": "The grain contract makes additivity explicit: actuals exclude forecast horizon, snapshot balances are semi-additive over time, and projected balances cannot be summed across overlapping horizons. These are target contracts and must be bound to the physical model before deployment.",
       "file": "docs/model-design.md",
-      "pattern": "^## Relationship rules$"
+      "pattern": "^## Grain and aggregation contracts$"
     },
     {
-      "title": "Navigate the metric surface by intent",
-      "description": "The metric catalog organizes hundreds of calculations into decision families instead of presenting an unreadable formula dump. This lets reviewers assess semantic coverage and governance. The gotcha is confusing measure count with value; discoverability and testability are the real design concerns.",
+      "title": "Verify keys and lifecycle behavior",
+      "description": "This section covers stable surrogate keys, Type 1 versus Type 2 choices, early-arriving facts, bounded reprocessing, and role-playing dates. The leadership concern is not merely drawing a star schema; it is keeping history reproducible when data arrives late or changes.",
+      "file": "docs/model-design.md",
+      "pattern": "^### Slowly changing and late-arriving data$"
+    },
+    {
+      "title": "Challenge the architecture decisions",
+      "description": "The ADRs expose rejected alternatives, consequences, and revisit triggers for the shared model, Direct Lake, relationship direction, and the large measure API. A senior design is credible when it explains when today’s decision should stop being used.",
+      "file": "docs/architecture-decisions.md",
+      "pattern": "^## ADR-001"
+    },
+    {
+      "title": "Test metric semantics, not just syntax",
+      "description": "Representative KPI contracts define grain, aggregation, blank behavior, and minimum regression cases. In particular, percentages use ratio-of-sums and inventory snapshots are semi-additive over time.",
       "file": "docs/metric-catalog.md",
-      "pattern": "^# Metric catalog$"
+      "pattern": "^## Representative contract templates$"
+    },
+    {
+      "title": "Plan for failure and 10× growth",
+      "description": "The operating model ties failure signals to containment, rollback, ownership, and scale levers. Targets remain explicitly proposed until telemetry and business SLAs establish a measured baseline.",
+      "file": "docs/operations-and-delivery.md",
+      "pattern": "^## Quality-attribute scenarios$"
+    },
+    {
+      "title": "Audit what each claim can prove",
+      "description": "The evidence register separates observed metadata, derived implications, proposed controls, and unevidenced outcomes. It prevents a polished portfolio from overstating authorship, adoption, performance, or business impact.",
+      "file": "docs/evidence-register.md",
+      "pattern": "^## Registered claims$"
     },
     {
       "title": "Review the machine-readable contract",
-      "description": "The YAML summary captures verified aggregate structure without exporting proprietary model source. It can seed automated documentation and release checks. The gotcha is letting documentation drift from the deployable model, so production implementations should generate or validate this contract in CI.",
+      "description": "The YAML summary captures observed aggregate structure without exporting proprietary model source. It can seed automated documentation and release checks. The gotcha is letting documentation drift from the deployable model, so production implementations should generate or validate this contract in CI.",
       "file": "model/model-summary.yaml",
       "pattern": "^project: supply-chain-control-tower$"
     },
     {
-      "title": "Finish with interview depth",
-      "description": "You can now explain grain, conformed dimensions, Direct Lake, relationship direction, helper tables, and metric governance. A useful follow-up is to open the Forecast Accuracy and Inventory Health repositories and compare how each report consumes this same model without redefining its contracts. Avoid presenting the sample DAX as production source—it is intentionally synthetic."
+      "title": "Finish with an executive-first narrative",
+      "description": "Use the short answer first, then let the interviewer choose between grain, Direct Lake, testing, operations, security, or leadership. Keep observed facts separate from proposed controls and do not present synthetic DAX as production source.",
+      "file": "docs/interview-guide.md",
+      "pattern": "^## 30-second answer$"
+    },
+    {
+      "title": "Choose the next deep dive",
+      "description": "You can now defend the model boundary, data contracts, ADRs, metric governance, failure handling, and evidence limits. For a follow-up, compare how the Forecast Accuracy and Inventory Health report case studies consume this shared layer, or trace the upstream Bronze–Silver–Gold architecture. Avoid claiming production controls or outcomes that remain marked proposed or not evidenced."
     }
   ]
 }

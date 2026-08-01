@@ -1,0 +1,48 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Control Tower Semantic Model — Architect Overview",
+  "description": "A hiring-manager walkthrough of the shared Direct Lake semantic layer, its domain boundaries, and its governance choices.",
+  "isPrimary": true,
+  "steps": [
+    {
+      "title": "Start with the business boundary",
+      "description": "This README frames the semantic model as a reusable contract for two analytical products. The key mechanism is shared governance without forcing forecast and inventory facts into one grain. That matters because a hiring manager can evaluate both business framing and model discipline; the gotcha is treating a shared model as permission to create fact-to-fact coupling.",
+      "file": "README.md",
+      "pattern": "^# Supply Chain Control Tower Semantic Model$"
+    },
+    {
+      "title": "Read the physical-to-semantic handoff",
+      "description": "This section shows Gold tables entering the model through Direct Lake. The design keeps serving logic in Gold and business calculation logic in the semantic layer. That separation makes lineage explainable; the gotcha is moving unstable report-specific transformations into shared dimensions.",
+      "file": "README.md",
+      "pattern": "^## Architecture$"
+    },
+    {
+      "title": "Inspect the two domain grains",
+      "description": "Forecast and inventory use different fact grains and answer different questions. Separate bounded contexts prevent accidental aggregation across horizon, fiscal period, snapshot week, and future week. The gotcha is assuming common dimensions imply common fact granularity.",
+      "file": "docs/model-design.md",
+      "pattern": "^## Domain boundaries$"
+    },
+    {
+      "title": "Verify relationship rules",
+      "description": "The relationship contract enforces dimension-to-fact filtering and avoids direct fact coupling. This supports predictable DAX and makes ambiguity visible during review. The gotcha is solving a report interaction problem by enabling bidirectional filtering globally.",
+      "file": "docs/model-design.md",
+      "pattern": "^## Relationship rules$"
+    },
+    {
+      "title": "Navigate the metric surface by intent",
+      "description": "The metric catalog organizes hundreds of calculations into decision families instead of presenting an unreadable formula dump. This lets reviewers assess semantic coverage and governance. The gotcha is confusing measure count with value; discoverability and testability are the real design concerns.",
+      "file": "docs/metric-catalog.md",
+      "pattern": "^# Metric catalog$"
+    },
+    {
+      "title": "Review the machine-readable contract",
+      "description": "The YAML summary captures verified aggregate structure without exporting proprietary model source. It can seed automated documentation and release checks. The gotcha is letting documentation drift from the deployable model, so production implementations should generate or validate this contract in CI.",
+      "file": "model/model-summary.yaml",
+      "pattern": "^project: supply-chain-control-tower$"
+    },
+    {
+      "title": "Finish with interview depth",
+      "description": "You can now explain grain, conformed dimensions, Direct Lake, relationship direction, helper tables, and metric governance. A useful follow-up is to open the Forecast Accuracy and Inventory Health repositories and compare how each report consumes this same model without redefining its contracts. Avoid presenting the sample DAX as production source—it is intentionally synthetic."
+    }
+  ]
+}

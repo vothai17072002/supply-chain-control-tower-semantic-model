@@ -1,0 +1,7 @@
+.env
+*.pbix
+*.pbit
+*.bim
+*.abf
+secrets/
+exports/

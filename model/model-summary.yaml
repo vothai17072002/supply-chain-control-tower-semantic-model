@@ -1,0 +1,38 @@
+project: supply-chain-control-tower
+artifact_type: sanitized-semantic-model-contract
+storage_mode: direct-lake
+compatibility_level_observed: 1606
+counts:
+  tables: 27
+  relationships: 22
+  forecast_measures: 89
+  inventory_measures: 456
+shared_dimensions:
+  - calendar
+  - product
+  - warehouse
+forecast_domain:
+  dimensions:
+    - customer_grouping
+    - forecast_horizon
+  facts:
+    - forecast_actual
+    - forecast_kpi
+inventory_domain:
+  dimensions:
+    - vendor
+  facts:
+    - inventory_snapshot
+    - inventory_future_week
+    - inventory_classification_weekly
+    - inventory_substatus_weekly
+helper_patterns:
+  - disconnected_compare_period
+  - disconnected_week_horizon
+  - risk_bucket_selector
+  - metric_field_parameter
+  - calculation_group_display_basis
+security:
+  contains_real_data: false
+  contains_credentials: false
+  contains_production_formulas: false

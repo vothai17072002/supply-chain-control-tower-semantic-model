@@ -1,40 +1,56 @@
 # Supply Chain Control Tower Semantic Model
 
 [![Microsoft Fabric](https://img.shields.io/badge/Microsoft-Fabric-742774)](https://www.microsoft.com/microsoft-fabric)
-[![Power BI](https://img.shields.io/badge/Power%20BI-Direct%20Lake-F2C811)](https://learn.microsoft.com/power-bi/enterprise/directlake-overview)
-[![Portfolio](https://img.shields.io/badge/content-sanitized-2E7D32)](#portfolio-safety)
 [![Portfolio quality](https://github.com/vothai17072002/supply-chain-control-tower-semantic-model/actions/workflows/portfolio-quality.yml/badge.svg)](https://github.com/vothai17072002/supply-chain-control-tower-semantic-model/actions/workflows/portfolio-quality.yml)
 
-A portfolio case study of a reusable Power BI semantic layer that serves two executive analytics products: Forecast Accuracy and Inventory Health.
+A case study of the shared data model behind two Power BI products: **Forecast Accuracy** and **Inventory Health**.
 
-> [!IMPORTANT]
-> This repository is a sanitized architecture showcase. It contains no company data, credentials, tenant identifiers, proprietary report exports, or production DAX source.
+In simple terms, this model gives both reports the same definitions for dates, products, warehouses, relationships, and reusable calculations. That consistency matters more than the number of measures in the model.
 
-## Executive brief
+> [!NOTE]
+> This is a privacy-safe architecture case study. It contains no company data, credentials, tenant identifiers, proprietary report exports, or production DAX source.
 
-| | Senior/Lead view |
-|---|---|
-| Problem | Two decision products needed consistent dimensions, grains, and KPI definitions without duplicating semantic logic. |
-| Architecture decision | Use one governed Direct Lake semantic model with conformed dimensions and bounded Forecast Accuracy and Inventory Health facts. |
-| Main trade-off | Reuse and consistency improve, but model surface area, release coordination, and blast radius increase. |
-| Operating principle | Gold owns stable serving grains; the semantic layer owns reusable business calculations; reports own user journeys. |
-| Evidence boundary | Counts and bindings are **observed** from read-only metadata as of 2026-08-01. Trade-offs and controls are **inferred/proposed** and are not claimed production outcomes. |
+## In one minute
 
-## Why this project exists
-
-Supply-chain analytics often fragments when every report defines its own calendar logic, product hierarchy, KPI vocabulary, and filter behavior. This model centralizes those contracts so multiple reports can share governed dimensions, facts, and measures while retaining domain-specific experiences.
+When each report defines its own metrics and business rules, two dashboards can give different answers to the same question. A shared semantic model provides one governed place for those rules.
 
 ```mermaid
 flowchart LR
-    G[(Gold warehouse)] -->|Direct Lake| S[Shared semantic model]
+    G[Curated warehouse data] -->|Direct Lake| S[Shared semantic model]
     S --> F[Forecast Accuracy report]
     S --> I[Inventory Health report]
-    S --> C[Reusable KPI and insight layer]
+    S --> K[Reusable dimensions and metrics]
 ```
+
+The design reuses common concepts while keeping the two business areas separate where their data grain and logic are different.
+
+## A small glossary
+
+| Term | Plain-language meaning |
+|---|---|
+| Semantic model | The governed layer that connects tables and defines reusable calculations for reports |
+| Dimension | A shared way to filter or group data, such as Date, Product, or Warehouse |
+| Fact | A table of measurable events or snapshots, such as forecast error or inventory quantity |
+| Grain | What one row represents |
+| Direct Lake | A Fabric storage mode that lets Power BI query governed lake data without a separate full import copy |
+| Measure | A calculation evaluated in the current report filters |
+
+## Choose your path
+
+| If you want to... | Start here |
+|---|---|
+| Understand the overall design | Read this page, then [`docs/model-design.md`](docs/model-design.md) |
+| Browse the business metric families | [`docs/metric-catalog.md`](docs/metric-catalog.md) |
+| Review architecture choices and trade-offs | [`docs/architecture-decisions.md`](docs/architecture-decisions.md) |
+| See deployment, reliability, security, and ownership | [`docs/operations-and-delivery.md`](docs/operations-and-delivery.md) |
+| Check what was observed versus proposed | [`docs/evidence-register.md`](docs/evidence-register.md) |
+| Prepare for a project walkthrough | [`docs/interview-guide.md`](docs/interview-guide.md) |
 
 ## Model at a glance
 
-| Area | Observed design snapshot (2026-08-01) |
+The following counts were observed through read-only metadata on **2026-08-01**:
+
+| Area | Observed snapshot |
 |---|---:|
 | Model tables | 27 |
 | Relationships | 22 |
@@ -44,12 +60,9 @@ flowchart LR
 | Shared dimensions | Calendar, Product, Warehouse |
 | Domain dimensions | Customer Grouping, Forecast Horizon, Vendor |
 
-The large measure surface is organized into dedicated measure tables and helper dimensions. It includes business KPIs, comparison logic, conditional formatting, dynamic narratives, and report interaction helpers.
+The model has a large measure library because it also supports comparisons, formatting, written explanations, and report interactions. That size is a governance and testing challenge—not a success metric.
 
-> [!NOTE]
-> The ER diagram below is conceptual and intentionally shows the primary relationship pattern, not all 22 observed relationships.
-
-## Architecture
+## Core relationship pattern
 
 ```mermaid
 erDiagram
@@ -63,64 +76,48 @@ erDiagram
     DIM_VENDOR ||--o{ FACT_INVENTORY_FUTURE : supplies
 ```
 
-The model follows single-direction star-schema relationships. Disconnected helper tables drive comparison periods, horizon selection, risk buckets, metric switching, and display basis without creating ambiguous filter paths.
+This is a simplified view of the main pattern, not a diagram of all 22 relationships. Most filters move in one direction from dimensions to facts, which keeps behavior predictable and reduces ambiguous paths.
 
-## Repository map
+## Who owns which logic?
 
-| Path | Purpose |
+| Layer | Responsibility |
+|---|---|
+| Curated warehouse | Stable row-level data, keys, and fact grain |
+| Semantic model | Shared relationships, business calculations, and metric names |
+| Reports | Page flow, interactions, and domain-specific user experience |
+
+Keeping these boundaries clear makes changes easier to test and prevents a report-formatting rule from silently becoming business logic.
+
+## Design choices
+
+- Share Calendar, Product, and Warehouse; keep forecast and inventory facts at their own grains.
+- Use single-direction star-schema relationships by default.
+- Use small disconnected helper tables for user selections instead of global bidirectional filters.
+- Keep reusable calculations in the semantic model and row-level shaping in the warehouse.
+- Organize measures by purpose, owner, and lifecycle; test important calculations with repeatable queries.
+- Block untrusted data before it reaches the reports.
+
+See [architecture decisions](docs/architecture-decisions.md) for alternatives and the signals that would trigger a redesign.
+
+## What is in the repository
+
+| Path | What you will find |
 |---|---|
 | [`docs/model-design.md`](docs/model-design.md) | Boundaries, grains, relationships, and Direct Lake choices |
-| [`docs/metric-catalog.md`](docs/metric-catalog.md) | Interview-friendly KPI families and calculation intent |
-| [`docs/architecture-decisions.md`](docs/architecture-decisions.md) | ADR-style decisions, alternatives, consequences, and revisit triggers |
-| [`docs/operations-and-delivery.md`](docs/operations-and-delivery.md) | Reliability, deployment, security, team ownership, and 10× scale plan |
-| [`docs/interview-guide.md`](docs/interview-guide.md) | 30-second, 5-minute, and deep-dive discussion paths |
-| [`docs/evidence-register.md`](docs/evidence-register.md) | Claim provenance, confidence boundaries, and interpretation limits |
-| [`model/model-summary.yaml`](model/model-summary.yaml) | Sanitized, machine-readable model contract |
-| [`samples/dax-patterns.md`](samples/dax-patterns.md) | Generic DAX patterns using synthetic names |
-| [`scripts/validate_portfolio.py`](scripts/validate_portfolio.py) | CI gate for machine contracts, links, syntax, and public-release safety |
-| `.tours/architect-overview.tour` | Guided architecture walkthrough for VS Code CodeTour |
+| [`docs/metric-catalog.md`](docs/metric-catalog.md) | Metric families and calculation intent |
+| [`docs/architecture-decisions.md`](docs/architecture-decisions.md) | Decisions, alternatives, and trade-offs |
+| [`docs/operations-and-delivery.md`](docs/operations-and-delivery.md) | Deployment, reliability, security, ownership, and scaling |
+| [`docs/evidence-register.md`](docs/evidence-register.md) | Source and confidence level for each claim |
+| [`model/model-summary.yaml`](model/model-summary.yaml) | Privacy-safe, machine-readable model summary |
+| [`samples/dax-patterns.md`](samples/dax-patterns.md) | Generic DAX examples using fabricated objects |
+| [`scripts/validate_portfolio.py`](scripts/validate_portfolio.py) | Automated structure, link, syntax, and privacy checks |
 
-## Leadership decisions and accountability
+## Evidence and limits
 
-- **Model boundary:** share Calendar, Product, and Warehouse; keep forecast and inventory facts at independent grains.
-- **Storage mode:** prefer Direct Lake for governed Gold objects, with an explicit fallback/performance test strategy.
-- **Filter contract:** use single-direction star relationships; solve UX switching with disconnected helpers rather than global bidirectional filters.
-- **Logic placement:** place reusable business calculations in the semantic layer and row-level shaping in Gold.
-- **Measure governance:** treat 545 observed measures as a discoverability and regression risk requiring folders, ownership, golden queries, and deprecation rules.
-- **Publication control:** block untrusted data before Gold/semantic consumption; do not hide data-quality failures in report formatting.
+Counts, storage mode, and report bindings are observed from the dated metadata snapshot. Trade-offs, controls, and scaling recommendations are inferred or proposed. They are not claims of production adoption, performance, savings, or individual ownership of the underlying enterprise solution.
 
-Detailed alternatives and consequences are recorded in [`docs/architecture-decisions.md`](docs/architecture-decisions.md).
-
-## Quality attributes
-
-| Attribute | Design response | Evidence status |
-|---|---|---|
-| Correctness | Declared fact grains, conformed keys, single-direction relationships, reconciliation gates | Design observed; automation proposed |
-| Performance | Direct Lake, star schema, bounded helper tables, query-budget protocol | Architecture observed; target budget not evidenced |
-| Reliability | Last trusted Gold publication, binding checks, rollback and incident runbook | Proposed operating contract |
-| Security | Least privilege, Build permission review, RLS/OLS separation, export controls | Control framework proposed; tenant posture not assessed |
-| Changeability | ADRs, machine-readable contract, CI validation, semantic regression tests | Portfolio implementation included; production adoption not claimed |
-| Scalability | Capacity/concurrency monitoring and 10× evolution path | Scenario analysis, not measured production result |
-
-## Senior/Team Lead discussion map
-
-- How to choose the grain of each fact and prevent double counting.
-- Why single-direction relationships and conformed dimensions improve model reliability.
-- How Direct Lake changes refresh, performance, and governance decisions.
-- How to structure hundreds of measures into KPI, comparison, formatting, and narrative families.
-- How one semantic model can serve distinct analytical products without becoming report-specific.
-- How I would assign decision rights across data engineering, semantic modeling, report product, governance, and operations.
-- How the design fails, how it is detected, and what gets rolled back.
-- What I would change at 10× data volume or concurrency—and which telemetry is needed before changing it.
-
-For an executive-first walkthrough, use [`docs/interview-guide.md`](docs/interview-guide.md).
-
-## Related case studies
+## Related projects
 
 - [Forecast Accuracy Analytics](https://github.com/vothai17072002/forecast-accuracy-analytics)
 - [Inventory Health Control Tower](https://github.com/vothai17072002/inventory-health-control-tower)
 - [Fabric Medallion Supply Chain Platform](https://github.com/vothai17072002/fabric-medallion-supply-chain-platform)
-
-## Portfolio safety
-
-All examples are generalized from observed architectural patterns. Object names are limited to generic analytical concepts, sample formulas use fabricated tables, and no operational endpoint or organization-specific asset is included. This repository demonstrates architectural reasoning; it does not assert individual authorship, team size, adoption, cost savings, or business impact without approved evidence.
